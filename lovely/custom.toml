@@ -50,14 +50,14 @@ match_indent = true
 [patches.pattern]
 target = "obj/notes/Block.lua"
 pattern = '''
-te.playOne(sounds.mine,"static",'sfx')
+te.playOne(sounds.mine,"static",'sfx',math.min(1,cs.noteVolume))
 '''
 position = "at"
 payload = '''
 if self.name == "mine" then
-    te.playOne(sounds.mine,"static",'sfx')
+    te.playOne(sounds.mine,"static",'sfx',math.min(1,cs.noteVolume))
 else
-    te.playOne(sounds.miss,"static",'sfx')
+    te.playOne(sounds.miss,"static",'sfx',math.min(1,cs.noteVolume))
 end
 '''
 match_indent = true
