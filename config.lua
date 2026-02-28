@@ -114,6 +114,9 @@ if imgui.BeginTabBar("sfxconfig") then
                         mod.config.sfx[customsounds.sfx[i].value] = sound
                     
                         sm:replaceSound(customsounds.sfx[i].value, "Mods/customsounds/customsounds/sfx/" .. customsounds.sfx[i].value .. "/" .. sound)
+
+                        -- SFX previews!!!!!!!!
+                        te.playOne("Mods/customsounds/customsounds/sfx/" .. customsounds.sfx[i].value .. "/" .. sound, "static", "sfx")
                     end
                 end
             end
@@ -164,7 +167,8 @@ if imgui.BeginTabBar("mconfig") then
             if customsounds.music[i].value == "menuloop" then
                 imgui.NewLine()
 
-                mod.config.music.menuloopBPM = helpers.InputInt("BPM (default: 108)", (mod.config.music.menuloopBPM))
+                mod.config.music.menuloopBPM = helpers.InputInt("BPM (default: 108)", mod.config.music.menuloopBPM)
+                mod.config.music.menuloopOffset = helpers.InputInt("Offset (ms)(default: 0)", mod.config.music.menuloopOffset)
             end
 
             imgui.EndTabItem()
