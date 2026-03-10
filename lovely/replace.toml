@@ -30,8 +30,8 @@ local function replaceSounds()
     for i = 1, #customsfx, 1 do
         local audioPath = customsfx[i].fallback
 
-        if mods.customsounds.config.sfx[customsfx[i].value] ~= "default" and love.filesystem.exists("Mods/customsounds/customsounds/sfx/" .. customsfx[i].value .. "/" .. mods.customsounds.config.sfx[customsfx[i].value]) then
-            audioPath = "Mods/customsounds/customsounds/sfx/" .. customsfx[i].value .. "/" .. mods.customsounds.config.sfx[customsfx[i].value]
+        if mods.lemontweaks.config.customsounds.sfx[customsfx[i].value] ~= "default" and love.filesystem.exists("Mods/lemontweaks/customsounds/sfx/" .. customsfx[i].value .. "/" .. mods.lemontweaks.config.customsounds.sfx[customsfx[i].value]) then
+            audioPath = "Mods/lemontweaks/customsounds/sfx/" .. customsfx[i].value .. "/" .. mods.lemontweaks.config.customsounds.sfx[customsfx[i].value]
         end
 
         if love.filesystem.exists(audioPath) then
@@ -52,123 +52,6 @@ local metatable = {
     end
 }
 
-setmetatable(mods.customsounds.config.sfx, metatable)
-'''
-match_indent = true
-
-
-
-# menuloop
-
-[[patches]]
-[patches.pattern]
-target = "obj/MenuMusicManager.lua"
-pattern = '''
-function MenuMusicManager:play()
-	if savedata.options.audio.playMenuMusic then
-		self.music
-			:load('assets/music/menuloop.ogg')
-			:setBPM(108)
-			:setLooping(true)
-			:play()
-	end
-end
-'''
-position = "at"
-payload = '''
--- tbh i'm too lazy to make this change without restarting, uhh yeah
-
-function MenuMusicManager:play()
-	if savedata.options.audio.playMenuMusic then
-        audioPath = 'assets/music/menuloop.ogg'
-
-        if mods.customsounds.config.music.menuloop ~= "default" and love.filesystem.exists("Mods/customsounds/customsounds/music/menuloop/" .. mods.customsounds.config.music.menuloop) then
-            audioPath = "Mods/customsounds/customsounds/music/menuloop/" .. mods.customsounds.config.music.menuloop
-        end
-
-		self.music
-			:load(audioPath)
-			:setBPM(mods.customsounds.config.music.menuloopBPM)
-			:setLooping(true)
-			:play()
-
-        local offset = mods.customsounds.config.music.menuloopOffset / 1000
-
-        if offset >= 0 then
-            self.music.source:seek(offset)
-            self.music:setTime(offset)
-        else 
-            self.music:setTime(offset)
-        end
-	end
-end
-'''
-match_indent = true
-
-
-
-# caution
-
-[[patches]]
-[patches.pattern]
-target = "states/EditorWarning.lua"
-pattern = '''
-st:setInit(function(self)
-	self.caution = ez.newjson('assets/editor/warning/caution'):instance()
-	shuv.resetPal()
-	shuv.pal[2] = {r=255,g=216,b=0}
-	te.play('assets/music/caution.ogg','stream','music')
-end)
-'''
-position = "at"
-payload = '''
--- same with this
-
-st:setInit(function(self)
-    audioPath = 'assets/music/caution.ogg'
-
-    if mods.customsounds.config.music.caution ~= "default" and love.filesystem.exists("Mods/customsounds/customsounds/music/caution/" .. mods.customsounds.config.music.caution) then
-        audioPath = "Mods/customsounds/customsounds/music/caution/" .. mods.customsounds.config.music.caution
-    end
-
-	self.caution = ez.newjson('assets/editor/warning/caution'):instance()
-	shuv.resetPal()
-	shuv.pal[2] = {r=255,g=216,b=0}
-	te.play(audioPath,'stream','music')
-end)
-'''
-match_indent = true
-
-[[patches]]
-[patches.pattern]
-target = "states/Error.lua"
-pattern = '''
-st:setInit(function(self)
-	self.errorMessage = self.errorMessage or 'No error provided???'
-	log('In-level error screen!','error')
-	log(self.errorMessage,'error')
-	self.errorSprite = ez.newjson('assets/error/error'):instance()
-	shuv.resetPal()
-	te.play('assets/music/caution.ogg','stream','music')
-end)
-'''
-position = "at"
-payload = '''
--- mrow :3
-
-st:setInit(function(self)
-    audioPath = 'assets/music/caution.ogg'
-
-    if mods.customsounds.config.music.caution ~= "default" and love.filesystem.exists("Mods/customsounds/customsounds/music/caution/" .. mods.customsounds.config.music.caution) then
-        audioPath = "Mods/customsounds/customsounds/music/caution/" .. mods.customsounds.config.music.caution
-    end
-
-	self.errorMessage = self.errorMessage or 'No error provided???'
-	log('In-level error screen!','error')
-	log(self.errorMessage,'error')
-	self.errorSprite = ez.newjson('assets/error/error'):instance()
-	shuv.resetPal()
-	te.play(audioPath,'stream','music')
-end)
+setmetatable(mods.lemontweaks.config.customsounds.sfx, metatable)
 '''
 match_indent = true
