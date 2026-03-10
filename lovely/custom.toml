@@ -368,13 +368,17 @@ local function getAllLevels()
                 end
             end
 
-            table.insert(levels, {
-                name = manifestDat.metadata.songName,
-                artist = manifestDat.metadata.artist,
-                bpm = playEvent.bpm,
-                file = workshopPath .. "/" .. folder .. "/" .. playEvent.file,
-                offset = playEvent.offset or 0
-            })
+			if playEvent == nil then
+				print("no play event found, skipped.")
+			else
+				table.insert(levels, {
+					name = manifestDat.metadata.songName,
+					artist = manifestDat.metadata.artist,
+					bpm = playEvent.bpm,
+					file = workshopPath .. "/" .. folder .. "/" .. playEvent.file,
+					offset = playEvent.offset or 0
+				})
+			end
         end
     end
     
@@ -457,11 +461,17 @@ function MenuMusicManager:getUpdate()
 end
 
 function MenuMusicManager:getInfo()
-    return { playhead = self.music.source:tell("seconds"), volume = self.music.source:getVolume() }
+	if self.music and self.music.source then
+    	return { playhead = self.music.source:tell("seconds"), volume = self.music.source:getVolume() }
+	end
+
+	return { playhead = 0, volume = 0 }
 end
 
 function MenuMusicManager:seek(time)
-	self.music.source:seek(time)
+	if self.music and self.music.source then
+		self.music.source:seek(time)
+	end
 end
 '''
 match_indent = true
