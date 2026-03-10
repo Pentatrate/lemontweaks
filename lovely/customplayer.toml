@@ -1,0 +1,244 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 1
+
+
+
+# custom player menu
+
+[[patches]]
+[patches.pattern]
+target = "states/Menu.lua"
+pattern = '''
+color('black')
+love.graphics.print(version, project.res.cx * 2 - fonts.digitalDisco:getWidth(version) - 10 ,6 + self.logoY )
+color()
+'''
+position = "before"
+payload = '''
+local mouseJustPressed = love.mouse.isDown(1) and not mods.lemontweaks.mouseWasDown
+mods.lemontweaks.mouseWasDown = love.mouse.isDown(1)
+
+mods.lemontweaks.helperOutlineRect = function(x, y, w, h)
+    color(1)
+    love.graphics.rectangle('fill', x - 1, y - 1, w + 2, h + 2)
+    color(0)
+    love.graphics.rectangle('fill', x, y, w, h)
+end
+
+mods.lemontweaks.helperImgButton = function(sprite, x, y, run)
+    love.graphics.draw(sprite, x, y)
+
+    local w = sprite:getWidth()
+    local h = sprite:getHeight()
+
+    local mx = mouse.rx
+    local my = mouse.ry
+
+    if mouseJustPressed then
+        if mx >= x and mx <= x + w and my >= y and my <= y + h then
+            run()
+        end
+    end
+end
+
+if mods.lemontweaks.config.customsounds.music.useCustomPlayer then
+    fonts.digitalDiscoBold = love.graphics.newFont("Mods/lemontweaks/assets/fonts/DigitalDisco.ttf", 16)
+
+    local playerIconPadding = 5 + 16;
+
+    cs.menuMusicManager:getUpdate()
+
+    local songArtist = mods.lemontweaks.fetchedLevels[mods.lemontweaks.current].artist:gsub("%b[]", "") or "unknown"
+    local songName = mods.lemontweaks.fetchedLevels[mods.lemontweaks.current].name:gsub("%b[]", "") or "unknown"
+
+    if mods.lemontweaks.menuOpen == nil then
+        mods.lemontweaks.menuOpen = false
+    end
+
+    if mods.lemontweaks.menuPlaying == nil then
+        mods.lemontweaks.menuPlaying = true
+    end
+
+    if mods.lemontweaks.mouseWasDown == nil then
+        mods.lemontweaks.mouseWasDown = false
+    end
+
+    if mods.lemontweaks.moveMenu == nil then
+        mods.lemontweaks.moveMenu = false
+    end
+
+    if mods.lemontweaks.menuX == nil then
+        mods.lemontweaks.menuX = -(fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 11 + playerIconPadding * 4)
+    end
+
+    if mods.lemontweaks.moveMenu then
+        mods.lemontweaks.moveMenu = false
+
+        if mods.lemontweaks.menuOpen then
+            flux.to(mods.lemontweaks, 25, { menuX = 0 }):ease("outCubic")
+        else
+            flux.to(mods.lemontweaks, 25, { menuX = -(fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 11 + playerIconPadding * 4) }):ease("outCubic")
+        end
+    end
+
+    mods.lemontweaks.helperOutlineRect(mods.lemontweaks.menuX + 0, 26, fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 16 + playerIconPadding * 5, 30)
+
+    color(1)
+    love.graphics.setFont(fonts.digitalDiscoBold)
+
+    -- sorry you have to see this...
+    local function shuffle(array)
+        local deck = array
+
+        for i = #deck, 2, -1 do -- Start from the last card down to the second card
+            local j = math.random(1, i)  -- Select a random index between 1 and i
+            deck[i], deck[j] = deck[j], deck[i]  -- Swap the randomly selected card with the current card
+        end
+
+        return deck
+    end
+
+    mods.lemontweaks.helperImgButton(sprites.player.shuffle, mods.lemontweaks.menuX + 5 + playerIconPadding * 0, 33, function()
+        mods.lemontweaks.fetchedLevels = shuffle(mods.lemontweaks.fetchedLevels)
+
+        cs.menuMusicManager:stop()
+        cs.menuMusicManager:play()
+    end)
+
+    local pauseIcon;
+
+    if mods.lemontweaks.menuPlaying then
+        pauseIcon = sprites.player.pause
+    else
+        pauseIcon = sprites.player.play
+        -- it's scuffed but it works
+        cs.menuMusicManager:seek(mods.lemontweaks.menuloopInfo.playhead)
+    end
+
+    mods.lemontweaks.helperImgButton(pauseIcon, mods.lemontweaks.menuX + 5 + playerIconPadding * 1, 33, function() 
+        mods.lemontweaks.menuPlaying = not mods.lemontweaks.menuPlaying
+
+        if mods.lemontweaks.menuPlaying then
+            cs.menuMusicManager:seek(mods.lemontweaks.menuloopInfo.playhead)
+            cs.menuMusicManager:forceUnmute()
+        else
+            mods.lemontweaks.menuloopInfo = cs.menuMusicManager:getInfo()
+            cs.menuMusicManager:forceMute()
+        end
+    end)
+    mods.lemontweaks.helperImgButton(sprites.player.back, mods.lemontweaks.menuX + 5 + playerIconPadding * 2, 33, function() 
+        local currentSongInfo = cs.menuMusicManager:getInfo()
+
+        if currentSongInfo.playhead - mods.lemontweaks.fetchedLevels[mods.lemontweaks.current].offset < 3 then
+            mods.lemontweaks.current = mods.lemontweaks.current - 1
+        end
+
+        if mods.lemontweaks.current < 1 then
+            mods.lemontweaks.current = #mods.lemontweaks.fetchedLevels
+        end
+
+        cs.menuMusicManager:stop()
+        cs.menuMusicManager:play()
+    end)
+    love.graphics.print(songArtist .. ' - ' .. songName, mods.lemontweaks.menuX + 5 + playerIconPadding * 3, 34)
+    mods.lemontweaks.helperImgButton(sprites.player.forward, mods.lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 10 + playerIconPadding * 3, 33, function() 
+        mods.lemontweaks.current = mods.lemontweaks.current + 1
+
+        if mods.lemontweaks.current > #mods.lemontweaks.fetchedLevels then
+            mods.lemontweaks.current = 1
+        end
+
+        cs.menuMusicManager:stop()
+        cs.menuMusicManager:play()
+    end)
+    love.graphics.rectangle('fill', mods.lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 10 + playerIconPadding * 4, 26, 1, 30)
+    mods.lemontweaks.helperImgButton(sprites.player.menu, mods.lemontweaks.menuX + fonts.digitalDiscoBold:getWidth(songArtist .. ' - ' .. songName) + 16 + playerIconPadding * 4, 33, function() 
+        mods.lemontweaks.menuOpen = not mods.lemontweaks.menuOpen
+        mods.lemontweaks.moveMenu = true
+    end)
+
+    love.graphics.setFont(fonts.digitalDisco)
+end
+'''
+match_indent = true
+
+
+
+# unpause fix
+
+[[patches]]
+[patches.pattern]
+target = "states/SongSelect.lua"
+pattern = '''self.menuMusicManager:forceUnmute()'''
+position = "at"
+payload = '''
+if mods.lemontweaks.menuPlaying or not mods.lemontweaks.config.customsounds.music.useCustomPlayer then 
+    self.menuMusicManager:forceUnmute()
+else
+    self.menuMusicManager:forceMute()
+    self.menuMusicManager:seek(mods.lemontweaks.menuloopInfo.playhead)
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "states/Costumes.lua"
+pattern = '''self.menuMusicManager:forceUnmute()'''
+position = "at"
+payload = '''
+if mods.lemontweaks.menuPlaying or not mods.lemontweaks.config.customsounds.music.useCustomPlayer then 
+    self.menuMusicManager:forceUnmute()
+else
+    self.menuMusicManager:forceMute()
+    self.menuMusicManager:seek(mods.lemontweaks.menuloopInfo.playhead)
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "states/AtomMap.lua"
+pattern = '''self.menuMusicManager:forceUnmute()'''
+position = "at"
+payload = '''
+if mods.lemontweaks.menuPlaying or not mods.lemontweaks.config.customsounds.music.useCustomPlayer then 
+    self.menuMusicManager:forceUnmute()
+else
+    self.menuMusicManager:forceMute()
+    self.menuMusicManager:seek(mods.lemontweaks.menuloopInfo.playhead)
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "states/AchievementViewer.lua"
+pattern = '''self.menuMusicManager:forceUnmute()'''
+position = "at"
+payload = '''
+if mods.lemontweaks.menuPlaying or not mods.lemontweaks.config.customsounds.music.useCustomPlayer then 
+    self.menuMusicManager:forceUnmute()
+else
+    self.menuMusicManager:forceMute()
+    self.menuMusicManager:seek(mods.lemontweaks.menuloopInfo.playhead)
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "states/Menu.lua"
+pattern = '''self.menuMusicManager:play()'''
+position = "before"
+payload = '''
+if mods.lemontweaks.didINIT == nil then
+    math.randomseed(love.timer.getTime() * 100000)
+    mods.lemontweaks.nativefs = require("Mods.lemontweaks.assets.dependencies.nativefs")
+    cs.menuMusicManager:initCustomPlayer()
+    mods.lemontweaks.didINIT = true
+end
+'''
+match_indent = true
