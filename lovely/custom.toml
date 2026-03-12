@@ -389,10 +389,20 @@ function MenuMusicManager:initCustomPlayer()
     local fetchedLevels = getAllLevels()
     mods.lemontweaks.fetchedLevels = shuffle(fetchedLevels)
 
-    mods.lemontweaks.current = 1
+    mods.lemontweaks.current = #mods.lemontweaks.fetchedLevels
 end
 
 function MenuMusicManager:play()
+	mods.lemontweaks.current = mods.lemontweaks.current + 1
+
+	if mods.lemontweaks.current > #mods.lemontweaks.fetchedLevels then
+		mods.lemontweaks.current = 1
+	end
+
+	if mods.lemontweaks.current < 1 then
+        mods.lemontweaks.current = #mods.lemontweaks.fetchedLevels
+    end
+
 	if savedata.options.audio.playMenuMusic then
         local audioPath = 'assets/music/menuloop.ogg'
 		local loop = true
