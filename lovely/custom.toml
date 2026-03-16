@@ -338,8 +338,8 @@ payload = '''
 	if lemontweaks.menuPlaying or not mods.lemontweaks.config.customsounds.music.useCustomPlayer then
 		-- nothing
 	else
-		self.menuMusicManager:forceMute()
-		self.menuMusicManager:seek(lemontweaks.menuloopInfo.playhead)
+		self:forceMute()
+		self:seek(lemontweaks.menuloopInfo.playhead)
 		return
 	end
 '''
