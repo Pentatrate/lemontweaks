@@ -10,7 +10,7 @@ priority = 1
 [[patches]]
 [patches.pattern]
 target = "states/Menu.lua"
-pattern = '''end, 17, nil, sprites.menu.customs)'''
+pattern = '''end, 0, nil, sprites.menu.play)'''
 position = "after"
 payload = '''
 if mods.lemontweaks.config.misc.customwiplevels then

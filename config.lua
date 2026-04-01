@@ -40,6 +40,65 @@ if not mod.sConfigState then
     mod.sConfigState = copyTable(mod.config.customsounds.music)
 end
 
+if imgui.TreeNode_Str("Custom Player") then
+    imgui.SetWindowFontScale(2)
+    imgui.Text("Custom Player")
+    imgui.SetWindowFontScale(1)
+    imgui.Text("A list of levels played in the custom player")
+
+    imgui.NewLine()
+    imgui.Separator()
+    imgui.NewLine()
+
+	local useCustomPlayer = helpers.InputBool("Use Custom Player", mod.config.customsounds.music.useCustomPlayer)
+	if mod.config.customsounds.music.useCustomPlayer ~= useCustomPlayer then
+		mod.config.customsounds.music.useCustomPlayer = useCustomPlayer
+		cs.menuMusicManager:stop()
+		cs.menuMusicManager:play()
+	end
+	helpers.imguiHelpMarker("Randomly shuffles songs from installed maps, no need to pick your favorite")
+
+    mod.config.customsounds.music.repeatSameSong = helpers.InputBool("Repeat Single Song", mod.config.customsounds.music.repeatSameSong)
+	helpers.imguiHelpMarker("Prevents the player from automatically advancing the song")
+
+    imgui.NewLine()
+    imgui.Separator()
+    imgui.NewLine()
+
+	if lemontweaks and lemontweaks.levellist then
+
+		imgui.Text("Level count: " .. #lemontweaks.levellist)
+
+		imgui.NewLine()
+
+		for i, data in ipairs(lemontweaks.levellist) do
+			local current = lemontweaks.fetchedLevels[lemontweaks.current]
+			if i ~= 1 then imgui.Separator() end
+			if imgui.Selectable_Bool((data.artist or "unknown"):gsub("%b[]", "") .. " - " .. (data.name or "unknown"):gsub("%b[]", ""), data == current) then
+				lemontweaks.current = data.index or 1
+				lemontweaks.tempDontAdvance = true
+				current = lemontweaks.fetchedLevels[lemontweaks.current]
+				-- print("[lemontweaks] Set index to " .. lemontweaks.current .. " " .. (current.artist or "unknown"):gsub("%b[]", "") .. " - " .. (current.name or "unknown"):gsub("%b[]", ""))
+
+				if cs and cs.menuMusicManager and mod.config.customsounds.music.useCustomPlayer then
+					cs.menuMusicManager:stop()
+					cs.menuMusicManager:play()
+				else
+					print("[lemontweaks] no MenuMusicManager")
+				end
+			end
+		end
+	else
+		imgui.Text("No Levels")
+	end
+
+    imgui.NewLine()
+    imgui.Separator()
+    imgui.NewLine()
+
+    imgui.TreePop()
+end
+
 if imgui.TreeNode_Str("Chart Progress") then
     imgui.SetWindowFontScale(2)
     imgui.Text("Chart Progress")
@@ -62,7 +121,7 @@ if imgui.TreeNode_Str("Chart Progress") then
     imgui.NewLine()
 
     imgui.SetWindowFontScale(2)
-    imgui.Text("Bar Visuals")
+    imgui.Text("Progress Visuals")
     imgui.SetWindowFontScale(1)
 
     mod.config.chartprog.useVFXcolor = helpers.InputBool("Use UI color", mod.config.chartprog.useVFXcolor)
@@ -76,8 +135,34 @@ if imgui.TreeNode_Str("Chart Progress") then
 
     imgui.NewLine()
 
-    mod.config.chartprog.showPercentage = helpers.InputBool("Show Percentage", mod.config.chartprog.showPercentage)
-    mod.config.chartprog.showDecimalPercentage = helpers.InputBool("Show Decimal Percentage", mod.config.chartprog.showDecimalPercentage)
+    mod.config.chartprog.showProgressText = helpers.InputBool("Show Progress Text", mod.config.chartprog.showProgressText)
+
+    local types = { "Percentage", "Beats", "Time" }
+    local alternate = {
+        Percentage = "Show Decimal",
+        Beats = "Total Beats",
+        Time = "Time Left"
+    }
+    
+    if not mod.config.chartprog.showProgressText then
+        imgui.BeginDisabled()
+    end
+
+	if imgui.BeginCombo("Progress Type", mod.config.chartprog.progressType) then
+        for i, v in ipairs(types) do
+            local isSelected = (v == mod.config.chartprog.progressType)
+            if imgui.Selectable_Bool(v, isSelected) then
+                mod.config.chartprog.progressType = v
+            end
+        end
+        imgui.EndCombo()
+    end
+
+    mod.config.chartprog.alternate = helpers.InputBool("Show " .. alternate[mod.config.chartprog.progressType], mod.config.chartprog.alternate)
+
+    if not mod.config.chartprog.showProgressText then
+        imgui.EndDisabled()
+    end
 
     imgui.NewLine()
 
@@ -281,65 +366,7 @@ if imgui.TreeNode_Str("Miscellaneous") then
 
     mod.config.misc.customwiplevels = helpers.InputBool("Custom WIP Levels Tab", mod.config.misc.customwiplevels)
     mod.config.misc.nodiscord = helpers.InputBool("Remove Discord Tab", mod.config.misc.nodiscord)
-
-    imgui.NewLine()
-    imgui.Separator()
-    imgui.NewLine()
-
-    imgui.TreePop()
-end
-
-if imgui.TreeNode_Str("Custom Player") then
-    imgui.SetWindowFontScale(2)
-    imgui.Text("Custom Player")
-    imgui.SetWindowFontScale(1)
-    imgui.Text("A list of levels played in the custom player")
-
-    imgui.NewLine()
-    imgui.Separator()
-    imgui.NewLine()
-
-	local useCustomPlayer = helpers.InputBool("Use Custom Player", mod.config.customsounds.music.useCustomPlayer)
-	if mod.config.customsounds.music.useCustomPlayer ~= useCustomPlayer then
-		mod.config.customsounds.music.useCustomPlayer = useCustomPlayer
-		cs.menuMusicManager:stop()
-		cs.menuMusicManager:play()
-	end
-	helpers.imguiHelpMarker("Randomly shuffles songs from installed maps, no need to pick your favorite")
-
-    mod.config.customsounds.music.repeatSameSong = helpers.InputBool("Repeat Single Song", mod.config.customsounds.music.repeatSameSong)
-	helpers.imguiHelpMarker("Prevents the player from automatically advancing the song")
-
-    imgui.NewLine()
-    imgui.Separator()
-    imgui.NewLine()
-
-	if lemontweaks and lemontweaks.levellist then
-
-		imgui.Text("Level count: " .. #lemontweaks.levellist)
-
-		imgui.NewLine()
-
-		for i, data in ipairs(lemontweaks.levellist) do
-			local current = lemontweaks.fetchedLevels[lemontweaks.current]
-			if i ~= 1 then imgui.Separator() end
-			if imgui.Selectable_Bool((data.artist or "unknown"):gsub("%b[]", "") .. " - " .. (data.name or "unknown"):gsub("%b[]", ""), data == current) then
-				lemontweaks.current = data.index or 1
-				lemontweaks.tempDontAdvance = true
-				current = lemontweaks.fetchedLevels[lemontweaks.current]
-				-- print("[lemontweaks] Set index to " .. lemontweaks.current .. " " .. (current.artist or "unknown"):gsub("%b[]", "") .. " - " .. (current.name or "unknown"):gsub("%b[]", ""))
-
-				if cs and cs.menuMusicManager and mod.config.customsounds.music.useCustomPlayer then
-					cs.menuMusicManager:stop()
-					cs.menuMusicManager:play()
-				else
-					print("[lemontweaks] no MenuMusicManager")
-				end
-			end
-		end
-	else
-		imgui.Text("No Levels")
-	end
+    mod.config.misc.fuckYouLMAOgottem = helpers.InputBool("Enable Special... \"Enhancements\" (tom fuckery)", mod.config.misc.fuckYouLMAOgottem)
 
     imgui.NewLine()
     imgui.Separator()

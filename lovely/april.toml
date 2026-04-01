@@ -1,0 +1,352 @@
+[manifest]
+version = "1"
+dump_lua = true
+priority = 1
+
+
+
+# modified chartprog.toml
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = '''table.sort(loadBeatQueue,function(k1, k2)'''
+position = "before"
+payload = '''
+cs.cbfPopup = false
+cs.cbfImg = love.graphics.newImage("Mods/lemontweaks/assets/textures/custom/cbf.png")
+cs.barWidth = nil
+cs.barHeight = nil
+cs.barXpos = nil
+cs.fsrBeat = nil
+cs.time = 0
+cs.zeroBeatTime = nil
+cs.songLength = nil
+cs.progessBarStartOffset = -cs.startBeat
+
+for _, event in ipairs(cs.playEvents) do
+    if event.type == "showResults" then
+        cs.fsrBeat = event.time
+        break
+    end
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = '''function GameManager:drawExpandedHud()'''
+position = "after"
+payload = '''
+lemontweaks.romanNumerals = lemontweaks.romanNumerals or require("Mods.lemontweaks.dependencies.romanNumerals")
+
+if mods.lemontweaks.config.chartprog.useVFXcolor then
+    color(cs.vfx.uiColor)
+else
+    color(1)
+end
+
+if cs.fsrBeat ~= nil then
+    if mods.lemontweaks.config.misc.fuckYouLMAOgottem then
+        cs.barWidth = project.res.x
+
+        if mods.lemontweaks.config.chartprog.reverseDirection then 
+            cs.barHeight = math.min(math.max(mods.lemontweaks.config.chartprog.barHeight * (1 - ((cs.cBeat + cs.progessBarStartOffset) / cs.fsrBeat)), 0), mods.lemontweaks.config.chartprog.barHeight)
+        else
+            cs.barHeight = math.min(math.max(mods.lemontweaks.config.chartprog.barHeight * ((cs.cBeat + cs.progessBarStartOffset) / cs.fsrBeat), 0), mods.lemontweaks.config.chartprog.barHeight)
+        end
+    else
+        cs.barHeight = mods.lemontweaks.config.chartprog.barHeight
+
+        if mods.lemontweaks.config.chartprog.reverseDirection then 
+            cs.barWidth = math.min(math.max(project.res.x * (1 - ((cs.cBeat + cs.progessBarStartOffset) / cs.fsrBeat)), 0), project.res.x)
+        else
+            cs.barWidth = math.min(math.max(project.res.x * ((cs.cBeat + cs.progessBarStartOffset) / cs.fsrBeat), 0), project.res.x)
+        end
+    end
+
+    if mods.lemontweaks.config.chartprog.centerBar then
+        cs.barXpos = (project.res.x - cs.barWidth) / 2
+    else
+        cs.barXpos = 0
+    end
+
+    if not mods.lemontweaks.config.chartprog.useVFXcolor then
+        if mods.lemontweaks.config.chartprog.topBar then
+            love.graphics.rectangle('fill', cs.barXpos - 1, -1, cs.barWidth + 2, cs.barHeight + 2)
+        end
+
+        if mods.lemontweaks.config.chartprog.bottomBar then
+            love.graphics.rectangle('fill', cs.barXpos - 1, project.res.y - cs.barHeight - 1, cs.barWidth + 2, cs.barHeight + 2)
+        end
+
+        color(0)
+    end
+
+    if mods.lemontweaks.config.chartprog.topBar then
+        love.graphics.rectangle('fill', cs.barXpos, 0, cs.barWidth, cs.barHeight)
+    end
+
+    if mods.lemontweaks.config.chartprog.bottomBar then
+        love.graphics.rectangle('fill', cs.barXpos, project.res.y - cs.barHeight, cs.barWidth, cs.barHeight)
+    end
+
+    if lemontweaks.padLeft == nil then
+        function lemontweaks.padLeft(input, char, length)
+            return string.rep(char, length - #tostring(input)) .. input
+        end
+    end
+
+    if lemontweaks.calcSongLength == nil then
+        -- i kinda stole this from thatguytheman (sorry </3)
+
+        function lemontweaks.calcSongLength(timingInfo, endBeat)
+            if not timingInfo or not timingInfo.initial then return 0 end
+
+            local bpm = timingInfo.initial.bpm or 100
+            local lastBeat = timingInfo.initial.beatOffset or 0
+            local length = 0
+
+            local points = timingInfo.timingPoints or {}
+
+            for _, tp in ipairs(points) do
+                if tp.beat >= cs.fsrBeat then
+                    break
+                end
+
+                local beatDelta = tp.beat - lastBeat
+                if beatDelta > 0 then
+                    length = length + (beatDelta / bpm) * 60
+                end
+
+                lastBeat = tp.beat
+                bpm = tp.bpm
+            end
+            
+            if cs.fsrBeat > (lastBeat or 0) and bpm then
+                length = length + ((cs.fsrBeat - (lastBeat or 0)) / bpm) * 60
+            end
+
+            return length
+        end
+    end
+
+    if mods.lemontweaks.config.chartprog.showProgressText then
+        color(cs.vfx.uiColor)
+        love.graphics.setFont(fonts.digitalDisco)
+
+        if mods.lemontweaks.config.chartprog.progressType == "Percentage" then
+            local percent
+
+            if mods.lemontweaks.config.chartprog.alternate then
+                if mods.lemontweaks.config.misc.fuckYouLMAOgottem then
+                    -- i thought about making the decimals roman numerals as well, but it made it too cursed...
+                    percent = lemontweaks.romanNumerals.ToRomanNumerals(math.floor(math.min(math.max(100 * ((cs.cBeat + cs.progessBarStartOffset) / cs.fsrBeat), 0), 100)))
+                else
+                    percent = string.format("%.2f", math.min(math.max(100 * ((cs.cBeat + cs.progessBarStartOffset) / cs.fsrBeat), 0), 100))
+                end
+            else
+                if mods.lemontweaks.config.misc.fuckYouLMAOgottem then
+                    percent = lemontweaks.romanNumerals.ToRomanNumerals(math.floor(math.min(math.max(100 * ((cs.cBeat + cs.progessBarStartOffset) / cs.fsrBeat), 0), 100)))
+                else
+                    percent = math.floor(math.min(math.max(100 * ((cs.cBeat + cs.progessBarStartOffset) / cs.fsrBeat), 0), 100))
+                end
+            end
+
+            love.graphics.print(percent .. "%", 3, mods.lemontweaks.config.chartprog.barHeight + 3)
+        end
+
+        if mods.lemontweaks.config.chartprog.progressType == "Beats" then
+            if mods.lemontweaks.config.chartprog.alternate then
+                if mods.lemontweaks.config.misc.fuckYouLMAOgottem then
+                    love.graphics.print(lemontweaks.romanNumerals.ToRomanNumerals(math.floor(cs.cBeat)) .. " / " .. lemontweaks.romanNumerals.ToRomanNumerals(math.floor(cs.fsrBeat)), 3, mods.lemontweaks.config.chartprog.barHeight + 3)
+                else
+                    love.graphics.print(lemontweaks.romanNumerals.ToRomanNumerals(math.floor(cs.cBeat)) .. " / " .. lemontweaks.romanNumerals.ToRomanNumerals(math.floor(cs.fsrBeat)), 3, mods.lemontweaks.config.chartprog.barHeight + 3)
+                end
+            else
+                if mods.lemontweaks.config.misc.fuckYouLMAOgottem then
+                    love.graphics.print(lemontweaks.romanNumerals.ToRomanNumerals(math.floor(cs.cBeat)), 3, mods.lemontweaks.config.chartprog.barHeight + 3)
+                else
+                    love.graphics.print(lemontweaks.romanNumerals.ToRomanNumerals(math.floor(cs.cBeat)), 3, mods.lemontweaks.config.chartprog.barHeight + 3)
+                end
+            end
+        end
+
+        if mods.lemontweaks.config.chartprog.progressType == "Time" then
+            if cs.songLength == nil then
+                cs.songLength = lemontweaks.calcSongLength(cs.timingInfo) + 1
+
+                if mods.lemontweaks.config.chartprog.alternate then
+                    cs.time = cs.songLength
+                end
+            end
+
+            if mods.lemontweaks.config.chartprog.alternate then
+                if cs.cBeat > 0 and not cs.paused then
+                    if cs.zeroBeatTime == nil then
+                        cs.zeroBeatTime = os.clock()
+                    end
+
+                    cs.time = cs.songLength - (os.clock() - cs.zeroBeatTime)
+                end
+            else
+                if cs.cBeat > 0 and not cs.paused then
+                    if cs.zeroBeatTime == nil then
+                        cs.zeroBeatTime = os.clock()
+                    end
+
+                    cs.time = os.clock() - cs.zeroBeatTime
+                end
+            end
+
+            if mods.lemontweaks.config.misc.fuckYouLMAOgottem then
+                love.graphics.print(lemontweaks.romanNumerals.ToRomanNumerals(math.max(math.floor(cs.rateMod * cs.time / 60), 0), "0", 2) .. ":" .. lemontweaks.romanNumerals.ToRomanNumerals(math.max(math.floor(cs.rateMod * cs.time) % 60, 2), "0", 2), 3, mods.lemontweaks.config.chartprog.barHeight + 3)
+            else
+                love.graphics.print(lemontweaks.padLeft(math.max(math.floor(cs.rateMod * cs.time / 60), 0), "0", 2) .. ":" .. lemontweaks.padLeft(math.max(math.floor(cs.rateMod * cs.time) % 60, 2), "0", 2), 3, mods.lemontweaks.config.chartprog.barHeight + 3)
+            end
+        end
+    end
+
+    if mods.lemontweaks.config.misc.fuckYouLMAOgottem and cs.cbfPopup then 
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.draw(cs.cbfImg, 0, 0)
+    end
+end
+'''
+match_indent = true
+
+
+
+# tap mines
+
+[[patches]]
+[patches.pattern]
+target = "obj/notes/Mine.lua"
+pattern = '''
+self.tap = false; -- just in case anyone gets ideas
+'''
+position = "at"
+payload = '''
+if mods.lemontweaks.config.misc.fuckYouLMAOgottem then
+    self.tap = math.floor(math.random() * 101) == 100 -- oh i have ideas
+else
+    self.tap = false
+end
+'''
+match_indent = true
+
+
+
+# click between frames
+
+[[patches]]
+[patches.pattern]
+target = "obj/notes/Block.lua"
+pattern = '''if self.tap and savedata.options.audio.hitsounds then'''
+position = "after"
+payload = '''
+if mods.lemontweaks.config.misc.fuckYouLMAOgottem and math.floor(math.random() * 21) == 20 then
+    cs.cbfPopup = true
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "obj/notes/ExtraTap.lua"
+pattern = '''te.playOne(sounds.tap,"static",'sfx',math.min(1,cs.noteVolume)*0.5)'''
+position = "after"
+payload = '''
+if mods.lemontweaks.config.misc.fuckYouLMAOgottem and math.floor(math.random() * 21) == 20 then
+    cs.cbfPopup = true
+end
+'''
+match_indent = true
+
+
+
+# more romanNumerals
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = '''rtf:drawRich(comboText,5,project.res.y - 15, fonts.digitalDisco, 1, 1, cs.vfx.uiColor)'''
+position = "at"
+payload = '''
+if lemontweaks.romanNumerals and mods.lemontweaks.config.misc.fuckYouLMAOgottem then
+    rtf:drawRich(lemontweaks.romanNumerals.ToRomanNumerals(comboText),5,project.res.y - 15, fonts.digitalDisco, 1, 1, cs.vfx.uiColor)
+else
+    rtf:drawRich(comboText,5,project.res.y - 15, fonts.digitalDisco, 1, 1, cs.vfx.uiColor)
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = '''rtf:drawRich(tostring(combo_print), project.res.x/2 - 1 + cs.vfx.comboX, 5 + cs.vfx.comboY - cs.vfx.comboBounce, fonts.digitalDisco, 2, 2, cs.vfx.uiColor, -1, "center")'''
+position = "at"
+payload = '''
+if lemontweaks.romanNumerals and mods.lemontweaks.config.misc.fuckYouLMAOgottem then
+    rtf:drawRich(tostring(lemontweaks.romanNumerals.ToRomanNumerals(combo_print)), project.res.x/2 - 1 + cs.vfx.comboX, 5 + cs.vfx.comboY - cs.vfx.comboBounce, fonts.digitalDisco, 2, 2, cs.vfx.uiColor, -1, "center")
+else
+    rtf:drawRich(tostring(combo_print), project.res.x/2 - 1 + cs.vfx.comboX, 5 + cs.vfx.comboY - cs.vfx.comboBounce, fonts.digitalDisco, 2, 2, cs.vfx.uiColor, -1, "center")
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = '''
+if cs.barelies == 1 then
+	text_print = text_print .. '\n 1' .. loc.get("accuracyBarelySingular")
+elseif cs.barelies > 1 then
+	text_print = text_print .. '\n' .. cs.barelies .. loc.get("accuracyBarelyPlural")
+end
+if cs.misses == 1 then
+	text_print = text_print .. '\n 1' .. loc.get("accuracyMissSingular")
+elseif cs.misses > 1 then
+	text_print = text_print .. '\n' .. cs.misses .. loc.get("accuracyMissPlural")
+end
+'''
+position = "at"
+payload = '''
+if lemontweaks.romanNumerals and mods.lemontweaks.config.misc.fuckYouLMAOgottem then
+    if cs.barelies == 1 then
+        text_print = text_print .. '\n I' .. loc.get("accuracyBarelySingular")
+    elseif cs.barelies > 1 then
+        text_print = text_print .. '\n' .. lemontweaks.romanNumerals.ToRomanNumerals(cs.barelies) .. loc.get("accuracyBarelyPlural")
+    end
+    if cs.misses == 1 then
+        text_print = text_print .. '\n I' .. loc.get("accuracyMissSingular")
+    elseif cs.misses > 1 then
+        text_print = text_print .. '\n' .. lemontweaks.romanNumerals.ToRomanNumerals(cs.misses) .. loc.get("accuracyMissPlural")
+    end
+else
+    if cs.barelies == 1 then
+        text_print = text_print .. '\n 1' .. loc.get("accuracyBarelySingular")
+    elseif cs.barelies > 1 then
+        text_print = text_print .. '\n' .. cs.barelies .. loc.get("accuracyBarelyPlural")
+    end
+    if cs.misses == 1 then
+        text_print = text_print .. '\n 1' .. loc.get("accuracyMissSingular")
+    elseif cs.misses > 1 then
+        text_print = text_print .. '\n' .. cs.misses .. loc.get("accuracyMissPlural")
+    end
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = '''love.graphics.printf(accStr, project.res.x - 105 + cs.vfx.accuracyX + cs.vfx.accuracyPlusX, 5 + cs.vfx.accuracyY + cs.vfx.accuracyPlusY, 100, "right")'''
+position = "before"
+payload = '''
+if lemontweaks.romanNumerals and mods.lemontweaks.config.misc.fuckYouLMAOgottem then
+    accStr = lemontweaks.romanNumerals.ToRomanNumerals(math.floor(tonumber(accStr:sub(1, -5)) + 0.5)) .. "%"
+end
+'''
+match_indent = true

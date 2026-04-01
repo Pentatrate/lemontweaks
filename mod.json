@@ -4,43 +4,5 @@
     "author":"gooberlemonade",
     "description":"Adds many random quality of life features and tweaks",
     "enabled":true,
-    "config":{
-        "customsounds":{
-            "music":{
-                "useCustomPlayer":true,
-                "repeatSameSong":false,
-                "caution":"default",
-                "menuloopBPM":108,
-                "menuloopOffset":0,
-                "menuloop":"default"
-            },
-            "sfx":{
-                "mine":"default",
-                "barely":"default",
-                "pause":"default",
-                "side":"default",
-                "block":"default",
-                "tap":"default",
-                "click":"default",
-                "miss":"default",
-                "hold":"default",
-                "hover":"default"
-            }
-        },
-        "misc":{
-            "customwiplevels":false,
-            "nodiscord":false
-        },
-        "chartprog":{
-            "useVFXcolor":true,
-            "showDecimalPercentage":false,
-            "showPercentage":false,
-            "reverseDirection":false,
-            "centerBar":false,
-            "topBar":false,
-            "barHeight":6,
-            "bottomBar":false
-        }
-    },
-    "version":"2.8"
+    "version":"2.9"
 }
