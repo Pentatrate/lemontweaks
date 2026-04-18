@@ -1,0 +1,7 @@
+.nolovelyignore
+config.json
+todo.txt
+
+customsounds/music
+customsounds/sfx/*
+!customsounds/sfx/side

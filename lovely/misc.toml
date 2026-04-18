@@ -10,63 +10,29 @@ priority = 1
 [[patches]]
 [patches.pattern]
 target = "states/Menu.lua"
-pattern = '''end, 0, nil, sprites.menu.play)'''
-position = "after"
+pattern = '''self.mainMenu:addOption('customs',function()'''
+position = "before"
 payload = '''
 if mods.lemontweaks.config.misc.customwiplevels then
-    local goToWIPCustoms = function()
-        if not love.filesystem.getInfo("Custom WIP Levels","directory") then
-            love.filesystem.createDirectory("Custom WIP Levels")
-        end
-        cs = bs.load("SongSelect")
-        self.menuMusicManager:clearOnBeatHooks()
-        self:leave()
-        cs.menuMusicManager = self.menuMusicManager
-        cs.topDirectory = "Custom WIP Levels/"
-        cs.allowEditor = true
-        cs:init()
-    end
+    local goToCustomWIPs = function()
+		if not love.filesystem.getInfo('Custom WIP Levels','directory') then
+			love.filesystem.createDirectory('Custom WIP Levels')
+		end
 
-    self.mainMenu:addOption("Custom WIP Levels",function()
-        local tutorialPlayed = UnlockManager.isLevelPassed({
-            level = "Finished levels/tutorial/",
-            percent = 0,
-        })
-        if not tutorialPlayed then
-            print("didnt play the tutorial lol")
+		cs.bg.delete = true
+		cs = bs.load('SongSelect')
+		self.menuMusicManager:clearOnBeatHooks()
 
-            PopupManager.queuePopup("tutorialNagTitle", "tutorialNag", 60, {
-                {label="popupOK"}
-                })
-        else
-            
-            local mechanicsPlayed = UnlockManager.isLevelPassed({
-                level = "Finished levels/cobblestonecounterpoint/",
-                percent = 0
-            })
-            mechanicsPlayed = mechanicsPlayed and UnlockManager.isLevelPassed({
-                level = "Finished levels/ladybugCastle/",
-                percent = 0
-            })
-            mechanicsPlayed = mechanicsPlayed and UnlockManager.isLevelPassed({
-                level = "Finished levels/publicocautivo/",
-                percent = 0
-            })
-            mechanicsPlayed = mechanicsPlayed and UnlockManager.isLevelPassed({
-                level = "Finished levels/staticNew/",
-                percent = 0
-            })
-            
-            if mechanicsPlayed then
-                goToWIPCustoms()
-            else
-                PopupManager.queuePopup("tutorialNagAltTitle", "tutorialNagAlt", 60, {
-                    {label="popupGoBack"},{label="popupContinue",func = function() goToWIPCustoms() end}
-                    })
-            end
-        end
-        
-    end, 17, nil, sprites.menu.wipcustoms)
+		self:leave()
+		cs.menuMusicManager = self.menuMusicManager
+		cs.topDirectory = 'Custom WIP Levels/'
+		cs.allowEditor = true
+		cs:init()
+	end
+
+    self.mainMenu:addOption('wipcustoms',function()
+		self:checkTutorials(goToCustomWIPs)	
+	end, 17, nil, sprites.menu.wipcustoms)
 end
 '''
 match_indent = true

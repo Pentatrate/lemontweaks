@@ -366,7 +366,6 @@ if imgui.TreeNode_Str("Miscellaneous") then
 
     mod.config.misc.customwiplevels = helpers.InputBool("Custom WIP Levels Tab", mod.config.misc.customwiplevels)
     mod.config.misc.nodiscord = helpers.InputBool("Remove Discord Tab", mod.config.misc.nodiscord)
-    mod.config.misc.fuckYouLMAOgottem = helpers.InputBool("Enable Special... \"Enhancements\" (tom fuckery)", mod.config.misc.fuckYouLMAOgottem)
 
     imgui.NewLine()
     imgui.Separator()
