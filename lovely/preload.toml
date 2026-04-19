@@ -1,0 +1,38 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 3621
+
+
+
+[[patches]]
+[patches.pattern]
+target = "main.lua"
+pattern = '''local gameDirectory = love.filesystem.getSourceBaseDirectory()'''
+position = "before"
+payload = '''
+local LT_CS_required = { 
+    "customsounds",
+    "customsounds/sfx",
+    "customsounds/sfx/barely",
+    "customsounds/sfx/block",
+    "customsounds/sfx/click",
+    "customsounds/sfx/hold",
+    "customsounds/sfx/hover",
+    "customsounds/sfx/mine",
+    "customsounds/sfx/miss",
+    "customsounds/sfx/pause",
+    "customsounds/sfx/side",
+    "customsounds/sfx/tap",
+    "customsounds/music",
+    "customsounds/music/caution",
+    "customsounds/music/menu"
+}
+
+for _, path in ipairs(LT_CS_required) do
+    if not love.filesystem.getInfo("Mods/lemontweaks/" .. path, "directory") then
+        love.filesystem.createDirectory("Mods/lemontweaks/" .. path)
+    end
+end
+'''
+match_indent = true

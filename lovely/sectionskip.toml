@@ -1,0 +1,134 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 2
+
+[[patches]]
+[patches.pattern]
+target = "states/Game.lua"
+pattern = '''self.preloadSoundData = soundData'''
+position = "after"
+payload = '''
+cs.noteTimings = {}
+
+for _, event in ipairs(cs.level.events) do
+    local repeats = event.repeats or 0
+    local repeatDelay = event.repeatDelay or 0
+
+    for i = 0, repeats do
+        if event.type == "bounce" then
+            for j = 0, event.bounces do
+                table.insert(cs.noteTimings, event.time + (i * repeatDelay) + (j * event.delay))
+            end
+        elseif event.type == "block" or event.type == "inverse" or event.type == "mine" or event.type == "side" or event.type == "extraTap" or event.type == "showResults" then
+            table.insert(cs.noteTimings, event.time + (i * repeatDelay))
+        elseif event.type == "hold" or event.type == "mineHold" then
+            table.insert(cs.noteTimings, event.time + (i * repeatDelay))
+            table.insert(cs.noteTimings, event.time + (i * repeatDelay) + event.duration)
+        end
+    end
+end
+
+table.sort(cs.noteTimings)
+
+function cs.getBetween(beat, startBeat)
+    --print(#cs.noteTimings)
+    if not cs.noteTimings then return {} end
+
+    local between = {}
+
+    -- probably unoptimized with a ton of notes
+    for i, t in ipairs(cs.noteTimings) do
+        if t <= beat then
+            between[1] = t
+        elseif t > beat and not between[2] then
+            between[2] = t
+            break
+        end
+    end
+
+    if between[1] == nil then
+        between[0] = startBeat
+    end
+
+    return between
+end
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = '''table.sort(loadBeatQueue,function(k1, k2)'''
+position = "before"
+payload = '''
+cs.holdingTime = 0
+'''
+match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "obj/GameManager.lua"
+pattern = '''function GameManager:drawExpandedHud()'''
+position = "after"
+payload = '''
+if mods.lemontweaks.config.sectionskip.enabled then
+    color(cs.vfx.uiColor)
+
+    local between = cs.getBetween(cs.cBeat, cs.startBeat)
+
+    local points = cs.timingInfo and cs.timingInfo.timingPoints or {}
+    local currentBpm = cs.timingInfo and cs.timingInfo.initial and cs.timingInfo.initial.bpm or cs.level.bpm or 100
+    
+    for _, p in ipairs(points) do
+        if p.time and p.bpm and p.time <= cs.cBeat then
+            currentBpm = p.bpm
+        else
+            break
+        end
+    end
+
+    local function sectionSkippable()
+        -- some levels are vfx only
+        if not cs.noteTimings then return false end
+        if not between[2] then return false end
+        between[1] = between[1] or 0
+
+        local sth = currentBpm * (mods.lemontweaks.config.sectionskip.skipthreashold / 60000)
+        local sjd = currentBpm * (mods.lemontweaks.config.sectionskip.skipjumpdist / 60000)
+
+        if cs.cBeat > between[1] and cs.cBeat < between[2] - sjd and (between[2] - between[1] - sjd > sth) then
+            return true
+        end
+        return false
+    end
+
+    if sectionSkippable() and not cs.paused then
+        if love.mouse.isDown(1) or love.mouse.isDown(2) or love.keyboard.isDown('z') or love.keyboard.isDown('x') then
+            cs.holdingTime = cs.holdingTime + love.timer.getDelta() * 1000
+        else
+            cs.holdingTime = 0
+        end
+
+        love.graphics.setFont(fonts.digitalDisco)
+        love.graphics.setLineWidth(1)
+
+        love.graphics.print("Hold to skip", 3, project.res.y / 2)
+
+        love.graphics.rectangle('line', 3, project.res.y / 2 + 16, 100, 8)
+        love.graphics.rectangle('fill', 3, project.res.y / 2 + 16, math.min(cs.holdingTime / mods.lemontweaks.config.sectionskip.skipholdlength * 100, 100), 8)
+
+        if cs.holdingTime / mods.lemontweaks.config.sectionskip.skipholdlength >= 1 then
+            cs.holdingTime = 0
+            local skipTo = between[2] - (currentBpm * (mods.lemontweaks.config.sectionskip.skipjumpdist / 60000))
+            cs.cBeat = skipTo
+            if cs.source then
+                cs.source:setBeat(skipTo)
+            end
+        end
+    else
+        cs.holdingTime = 0
+    end
+end
+'''
+match_indent = true

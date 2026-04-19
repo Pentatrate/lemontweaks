@@ -2,7 +2,7 @@
     "enabled":true,
     "name":"lemontweaks",
     "id":"lemontweaks",
-    "version":"2.9",
+    "version":"2.10",
     "author":"gooberlemonade",
     "description":"Adds many random quality of life features and tweaks",
     "config": {
@@ -45,6 +45,12 @@
             "topBar":false,
             "barHeight":6,
             "bottomBar":false
+        },
+        "sectionskip":{
+            "enabled":false,
+            "skipthreashold":5000,
+            "skipholdlength":1000,
+            "skipjumpdist":2000
         }
     }
 }

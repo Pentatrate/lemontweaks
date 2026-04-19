@@ -354,6 +354,43 @@ if imgui.TreeNode_Str("Custom Sounds") then
     imgui.TreePop()
 end
 
+if imgui.TreeNode_Str("Section Skip") then
+    imgui.SetWindowFontScale(2)
+    imgui.Text("Section Skip")
+    imgui.SetWindowFontScale(1)
+    imgui.Text("Allows for skipping empty sections within a level")
+
+    imgui.NewLine()
+    imgui.Separator()
+    imgui.NewLine()
+
+    mod.config.sectionskip.enabled = helpers.InputBool("Enabled", mod.config.sectionskip.enabled)
+
+    imgui.NewLine()
+
+    imgui.SetNextItemWidth(120)
+    mod.config.sectionskip.skipthreashold = helpers.InputInt("Skip Threashold (ms)", mod.config.sectionskip.skipthreashold)
+    helpers.imguiHelpMarker("Determines how long the empty section should be to be skippable")
+
+    imgui.SetNextItemWidth(120)
+    mod.config.sectionskip.skipholdlength = helpers.InputInt("Skip Hold Length (ms)", mod.config.sectionskip.skipholdlength)
+    helpers.imguiHelpMarker("How long a tab button should be held to skip the section")
+
+    imgui.SetNextItemWidth(120)
+    mod.config.sectionskip.skipjumpdist = helpers.InputInt("Skip Jump Distance (ms)", mod.config.sectionskip.skipjumpdist)
+    helpers.imguiHelpMarker("Distance in milliseconds before the next note after an empty section it jumps to")
+
+    if mod.config.sectionskip.skipholdlength > mod.config.sectionskip.skipthreashold then
+        mod.config.sectionskip.skipholdlength = mod.config.sectionskip.skipthreashold
+    end
+
+    imgui.NewLine()
+    imgui.Separator()
+    imgui.NewLine()
+
+    imgui.TreePop()
+end
+
 if imgui.TreeNode_Str("Miscellaneous") then
     imgui.SetWindowFontScale(2)
     imgui.Text("Miscellaneous")
