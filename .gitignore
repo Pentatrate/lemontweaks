@@ -5,3 +5,5 @@ todo.txt
 customsounds/music
 customsounds/sfx/*
 !customsounds/sfx/side
+customsounds/sfx/side/*
+!customsounds/sfx/side/alternate.ogg
