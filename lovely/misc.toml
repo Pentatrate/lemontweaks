@@ -13,7 +13,7 @@ target = "states/Menu.lua"
 pattern = '''self.mainMenu:addOption('customs',function()'''
 position = "before"
 payload = '''
-if mods.lemontweaks.config.misc.customwiplevels then
+if mods.lemontweaks.config.misc.menus.customwiplevels then
     local goToCustomWIPs = function()
 		if not love.filesystem.getInfo('Custom WIP Levels','directory') then
 			love.filesystem.createDirectory('Custom WIP Levels')
@@ -50,7 +50,7 @@ end, 17*7, nil, sprites.menu.discord)
 '''
 position = "at"
 payload = '''
-if not mods.lemontweaks.config.misc.nodiscord then
+if not mods.lemontweaks.config.misc.menus.nodiscord then
     self.mainMenu:addOption('discordLink',function()
         love.system.openURL('https://discord.gg/MAXGRYPMSw')
     end, 17*7, nil, sprites.menu.discord)
