@@ -260,7 +260,7 @@ payload = '''
 st:setInit(function(self)
     audioPath = 'assets/music/caution.ogg'
 
-    if mods.lemontweaks.config.customsounds.music.caution ~= "default" and love.filesystem.exists("Mods/lemontweaks/customsounds/music/caution/" .. mods.lemontweaks.config.customsounds.music.caution) then
+    if mods.lemontweaks.config.customsounds.music.caution ~= "default" and love.filesystem.getInfo("Mods/lemontweaks/customsounds/music/caution/" .. mods.lemontweaks.config.customsounds.music.caution) then
         audioPath = "Mods/lemontweaks/customsounds/music/caution/" .. mods.lemontweaks.config.customsounds.music.caution
     end
 
@@ -292,7 +292,7 @@ payload = '''
 st:setInit(function(self)
     audioPath = 'assets/music/caution.ogg'
 
-    if mods.lemontweaks.config.customsounds.music.caution ~= "default" and love.filesystem.exists("Mods/lemontweaks/customsounds/music/caution/" .. mods.lemontweaks.config.customsounds.music.caution) then
+    if mods.lemontweaks.config.customsounds.music.caution ~= "default" and love.filesystem.getInfo("Mods/lemontweaks/customsounds/music/caution/" .. mods.lemontweaks.config.customsounds.music.caution) then
         audioPath = "Mods/lemontweaks/customsounds/music/caution/" .. mods.lemontweaks.config.customsounds.music.caution
     end
 

@@ -36,9 +36,9 @@ local function compareTable(a, b)
     return true
 end
 
-if not mod.sConfigState then
+--[[ if not mod.sConfigState then
     mod.sConfigState = copyTable(mod.config.customsounds.music)
-end
+end ]]
 
 if imgui.TreeNode_Str("Custom Player") then
     imgui.SetWindowFontScale(2)
@@ -143,7 +143,7 @@ if imgui.TreeNode_Str("Chart Progress") then
         Beats = "Total Beats",
         Time = "Time Left"
     }
-    
+
     if not mod.config.chartprog.showProgressText then
         imgui.BeginDisabled()
     end
@@ -493,7 +493,7 @@ if imgui.TreeNode_Str("Miscellaneous") then
         if imgui.BeginTabItem("Menus##miscconfig") then
 
             mod.config.misc.menus.customwiplevels = helpers.InputBool("Custom WIP Levels Tab", mod.config.misc.menus.customwiplevels)
-            
+
             mod.config.misc.menus.nodiscord = helpers.InputBool("Remove Discord Tab", mod.config.misc.menus.nodiscord)
 
             mod.config.misc.menus.forceOffSteamEdit = helpers.InputBool("Force Off Steam Editing", mod.config.misc.menus.forceOffSteamEdit)

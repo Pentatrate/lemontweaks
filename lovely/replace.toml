@@ -30,11 +30,11 @@ local function replaceSounds()
     for i = 1, #customsfx, 1 do
         local audioPath = customsfx[i].fallback
 
-        if mods.lemontweaks.config.customsounds.sfx[customsfx[i].value] ~= "default" and love.filesystem.exists("Mods/lemontweaks/customsounds/sfx/" .. customsfx[i].value .. "/" .. mods.lemontweaks.config.customsounds.sfx[customsfx[i].value]) then
+        if mods.lemontweaks.config.customsounds.sfx[customsfx[i].value] ~= "default" and love.filesystem.getInfo("Mods/lemontweaks/customsounds/sfx/" .. customsfx[i].value .. "/" .. mods.lemontweaks.config.customsounds.sfx[customsfx[i].value]) then
             audioPath = "Mods/lemontweaks/customsounds/sfx/" .. customsfx[i].value .. "/" .. mods.lemontweaks.config.customsounds.sfx[customsfx[i].value]
         end
 
-        if love.filesystem.exists(audioPath) then
+        if love.filesystem.getInfo(audioPath) then
             --sounds[customsfx[i].value] = audioPath
             sounds:replaceSound(customsfx[i].value, audioPath)
         end
