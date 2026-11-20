@@ -51,7 +51,7 @@ function cs.createHSVtext(text, angle)
     }
 
     table.insert(cs.HSVmarkers, {
-        text = text, 
+        text = text,
         vel = mods.lemontweaks.config.hsv.animation.initVel,
         rot = 0,
         ditherPercent = 1,
@@ -211,5 +211,5 @@ position = "after"
 match_indent = true
 times = 1
 payload = '''
-if pressed then print('[dbg] tap pressed, queued taps:', #cs.taps, 'mode:', savedata.options.accessibility.taps, 'tooly:', mods.beattools.config.tooly) end
+-- if pressed then print('[dbg] tap pressed, queued taps:', #cs.taps, 'mode:', savedata.options.accessibility.taps, 'tooly:', mods.beattools.config.tooly) end
 '''
